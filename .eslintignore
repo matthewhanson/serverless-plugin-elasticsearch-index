@@ -1,6 +1,0 @@
-.serverless
-node_modules
-
-# React assets for demo/
-dist
-build
