@@ -1,3 +1,0 @@
-# Website demo
-
-List projects.
