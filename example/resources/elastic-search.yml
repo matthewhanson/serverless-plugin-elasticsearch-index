@@ -2,7 +2,7 @@ Resources:
   ESDomain:
     Type: AWS::Elasticsearch::Domain
     Properties:
-      ElasticsearchVersion: 6.2
+      ElasticsearchVersion: 6.4
       ElasticsearchClusterConfig: 
         DedicatedMasterEnabled: false
         InstanceCount: 1
