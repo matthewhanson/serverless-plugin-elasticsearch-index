@@ -4,6 +4,12 @@
 to automate the creation of elasticsearch indices and mappings on deployment of your services.
 In the background it uses [elasticsearch client](https://github.com/elastic/elasticsearch-js).
 
+## Installation
+Clone this repo into your node_modules.
+
+So that you have a folder called serverless-plugin-elasticsearch-index with the contents of this repo (index.js,lib,...etc)
+
+
 ## Usage
 
 When installed in your service, update your `serverless.yml` file as follows:
