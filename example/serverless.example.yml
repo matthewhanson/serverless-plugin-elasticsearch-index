@@ -1,0 +1,89 @@
+service: elasticsearch-infrastructure
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-central-1
+  environment:
+    INDEX: es-backend
+    TYPE: document
+    DOMAIN_ENDPOINT:
+      Fn::GetAtt: [ ESDomain, DomainEndpoint ]
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - es:*
+      Resource:
+        - Fn::GetAtt: [ ESDomain, DomainArn ]
+        - Fn::Join:
+          - ''
+          - - Fn::GetAtt: [ ESDomain, DomainArn ]
+            - '/*'
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+      Resource:
+        - "Fn::GetAtt": [Table, Arn]
+        - "Fn::Join": ["/", ["Fn::GetAtt": [Table, Arn], "index", "*"]]
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  environment: ${file(../../env.yml):${self:custom.stage}, file(./env.yml):default}
+  region: ${opt:region, self:provider.region}
+  tablename: ${self:custom.stage}-backend
+  output:
+    file: "./stack-${self:custom.stage}-output.yml"
+  slsEsIndices:
+    - index: es-backend
+      mapping: ${file(./resources/mappings/project.js)}
+      region: ${self:custom.region}
+      version: '6.4'
+      endpointName: ${self:custom.stage}-es-endpoint
+
+plugins:
+  - serverless-export-env
+  - serverless-stack-output
+  - serverless-plugin-elasticsearch-index
+
+functions:
+  DynamoDbHandler:
+    handler: handler.dynamoDbHandler
+    events:
+    - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - Table
+              - StreamArn  
+  SearchAll:
+    handler: handler.searchAll
+resources:
+  - Resources:
+   # ElasticSearch
+  - ${file(resources/elastic-search.yml)}
+    # DynamoDB
+  - ${file(resources/table.yml)}
+  - Outputs:
+      ESDomainName:
+        Value:
+          Ref: ESDomain
+      ESDomainEndpoint:
+        Value:
+          Fn::GetAtt: [ ESDomain, DomainEndpoint ]
+        Export:
+          Name: ${self:custom.stage}-es-endpoint
+      TableArn:
+        Value:
+          Fn::GetAtt:
+            - Table
+            - Arn
+        Export:
+          Name: ${self:custom.stage}-table-arn
+      TableName:
+        Value: ${self:custom.tablename}
+        Export:
+          Name: ${self:custom.stage}-table-name
