@@ -21,6 +21,7 @@ class CreateElasticIndexDeploy {
 
   afterDeployment() {
     const indices = this.serverless.service.custom.slsEsIndices;
+    const region = this.serverless.service.provider.region;
 
     return Promise.all(
       indices.map(async indexConfig => {
@@ -28,7 +29,7 @@ class CreateElasticIndexDeploy {
           const credentials = await getUserCredentials();
           const { accessKeyId, secretAccessKey } = credentials.credentials;
 
-          const { index, mapping, region, endpointName } = indexConfig;
+          const { index, mapping, version, endpointName } = indexConfig;
 
           const domain = await getExportValueByName({
             name: endpointName,
@@ -39,7 +40,7 @@ class CreateElasticIndexDeploy {
           const esOptions = {
             index,
             connectionClass,
-            apiVersion: '6.5',
+            apiVersion: version,
             host: `https://${domain}`,
             // this is required when out of a lambda function
             awsConfig: new AWS.Config(credentials.credentials)
