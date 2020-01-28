@@ -42,11 +42,7 @@ class CreateElasticIndexDeploy {
             apiVersion: '6.5',
             host: `https://${domain}`,
             // this is required when out of a lambda function
-            awsConfig: new AWS.Config({
-              accessKeyId,
-              secretAccessKey,
-              region,
-            }),
+            awsConfig: new AWS.Config(credentials.credentials)
           };
 
           const client = elasticsearch.Client(esOptions);
